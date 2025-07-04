@@ -1,3 +1,12 @@
+
+-- Tabela de relação N:N entre usuários e empresas
+CREATE TABLE IF NOT EXISTS usuarios_empresas (
+  user_id INTEGER,
+  empresa_id INTEGER,
+  PRIMARY KEY (user_id, empresa_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (empresa_id) REFERENCES empresas(id)
+);
 -- Criação da tabela de Locais Instalados
 CREATE TABLE IF NOT EXISTS locais_instalados (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

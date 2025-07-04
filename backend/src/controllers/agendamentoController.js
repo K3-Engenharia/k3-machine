@@ -1,4 +1,5 @@
 import { criarAgendamento, listarAgendamentosPorEquipamento, atualizarAgendamento, atualizarStatusAgendamento } from '../models/agendamentoModel.js';
+import { getDb } from '../models/db.js';
 
 export async function agendarPreventiva(req, res) {
   try {
@@ -11,9 +12,17 @@ export async function agendarPreventiva(req, res) {
   }
 }
 
-export async function listarAgendamentos(req, res) {
+export function listarAgendamentos(req, res) {
   try {
-    const lista = await listarAgendamentosPorEquipamento(req.params.id);
+    // Se admin, pode ver todos os agendamentos do equipamento
+    // Se não, só pode ver se o equipamento pertence a uma das empresas do usuário
+    const db = getDb();
+    const equipamento = db.prepare('SELECT * FROM equipamentos WHERE id = ?').get(req.params.id);
+    if (!equipamento) return res.status(404).json({ message: 'Equipamento não encontrado' });
+    if (req.user.role !== 'admin' && (!Array.isArray(req.user.empresas) || !req.user.empresas.includes(equipamento.empresa_id))) {
+      return res.status(403).json({ message: 'Acesso negado a este equipamento' });
+    }
+    const lista = listarAgendamentosPorEquipamento(req.params.id);
     res.json(lista);
   } catch (e) {
     res.status(500).json({ message: 'Erro ao listar agendamentos' });

@@ -1,38 +1,44 @@
 import { getDb } from './db.js';
 
-export async function createEquipamento(equip) {
-  const db = await getDb();
-  const result = await db.run(
+export function createEquipamento(equip) {
+  const db = getDb();
+  const result = db.prepare(
     `INSERT INTO equipamentos (empresa_id, nome, tipo, modelo, fabricante, potencia, corrente_nominal, tensao_nominal, local_instalado, tag_planta, data_instalacao, anexo, status, rolamento)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [equip.empresa_id, equip.nome, equip.tipo, equip.modelo, equip.fabricante, equip.potencia, equip.corrente_nominal, equip.tensao_nominal, equip.local_instalado, equip.tag_planta, equip.data_instalacao, equip.anexo, equip.status || 'Em Operação', equip.rolamento]
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    equip.empresa_id, equip.nome, equip.tipo, equip.modelo, equip.fabricante, equip.potencia, equip.corrente_nominal, equip.tensao_nominal, equip.local_instalado, equip.tag_planta, equip.data_instalacao, equip.anexo, equip.status || 'Em Operação', equip.rolamento
   );
-  return { id: result.lastID, ...equip };
+  return { id: result.lastInsertRowid, ...equip };
 }
 
-export async function listEquipamentos({ empresa_id } = {}) {
-  const db = await getDb();
-  if (empresa_id) {
-    return db.all('SELECT * FROM equipamentos WHERE empresa_id = ? ORDER BY created_at DESC', [empresa_id]);
+export function listEquipamentos({ empresa_id, empresas } = {}) {
+  const db = getDb();
+  if (empresas && Array.isArray(empresas) && empresas.length > 0) {
+    const placeholders = empresas.map(() => '?').join(',');
+    return db.prepare(`SELECT * FROM equipamentos WHERE empresa_id IN (${placeholders}) ORDER BY created_at DESC`).all(...empresas);
   }
-  return db.all('SELECT * FROM equipamentos ORDER BY created_at DESC');
+  if (empresa_id) {
+    return db.prepare('SELECT * FROM equipamentos WHERE empresa_id = ? ORDER BY created_at DESC').all(empresa_id);
+  }
+  return db.prepare('SELECT * FROM equipamentos ORDER BY created_at DESC').all();
 }
 
-export async function getEquipamentoById(id) {
-  const db = await getDb();
-  return db.get('SELECT * FROM equipamentos WHERE id = ?', [id]);
+export function getEquipamentoById(id) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM equipamentos WHERE id = ?').get(id);
 }
 
-export async function updateEquipamento(id, equip) {
-  const db = await getDb();
-  await db.run(
-    `UPDATE equipamentos SET empresa_id=?, nome=?, tipo=?, modelo=?, fabricante=?, potencia=?, corrente_nominal=?, tensao_nominal=?, local_instalado=?, tag_planta=?, data_instalacao=?, anexo=?, status=?, rolamento=? WHERE id=?`,
-    [equip.empresa_id, equip.nome, equip.tipo, equip.modelo, equip.fabricante, equip.potencia, equip.corrente_nominal, equip.tensao_nominal, equip.local_instalado, equip.tag_planta, equip.data_instalacao, equip.anexo, equip.status, equip.rolamento, id]
+export function updateEquipamento(id, equip) {
+  const db = getDb();
+  db.prepare(
+    `UPDATE equipamentos SET empresa_id=?, nome=?, tipo=?, modelo=?, fabricante=?, potencia=?, corrente_nominal=?, tensao_nominal=?, local_instalado=?, tag_planta=?, data_instalacao=?, anexo=?, status=?, rolamento=? WHERE id=?`
+  ).run(
+    equip.empresa_id, equip.nome, equip.tipo, equip.modelo, equip.fabricante, equip.potencia, equip.corrente_nominal, equip.tensao_nominal, equip.local_instalado, equip.tag_planta, equip.data_instalacao, equip.anexo, equip.status, equip.rolamento, id
   );
   return getEquipamentoById(id);
 }
 
-export async function deleteEquipamento(id) {
-  const db = await getDb();
-  await db.run('DELETE FROM equipamentos WHERE id = ?', [id]);
+export function deleteEquipamento(id) {
+  const db = getDb();
+  db.prepare('DELETE FROM equipamentos WHERE id = ?').run(id);
 }

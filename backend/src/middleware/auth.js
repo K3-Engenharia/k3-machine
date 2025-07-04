@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getEmpresasByUserId } from '../models/userModel.js';
 
 export function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -7,6 +8,10 @@ export function authenticateToken(req, res, next) {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: 'Token inválido' });
+    // Adiciona empresas vinculadas ao usuário (exceto admin)
+    if (user.role !== 'admin') {
+      user.empresas = getEmpresasByUserId(user.id);
+    }
     req.user = user;
     next();
   });

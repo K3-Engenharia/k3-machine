@@ -2,33 +2,39 @@
 import { getDb } from './db.js';
 
 
-async function getAllLocaisInstalados(empresa_id) {
-  const db = await getDb();
+
+function getAllLocaisInstalados(empresa_id) {
+  const db = getDb();
+  let locais;
   if (empresa_id) {
-    return db.all('SELECT * FROM locais_instalados WHERE empresa_id = ?', [empresa_id]);
+    locais = db.prepare('SELECT * FROM locais_instalados WHERE empresa_id = ?').all(empresa_id);
   } else {
-    return db.all('SELECT * FROM locais_instalados');
+    locais = db.prepare('SELECT * FROM locais_instalados').all();
   }
+  return Array.isArray(locais) ? locais : [];
 }
 
 
-async function createLocalInstalado(nome, empresa_id) {
-  const db = await getDb();
-  const result = await db.run('INSERT INTO locais_instalados (nome, empresa_id) VALUES (?, ?)', [nome, empresa_id]);
-  return { id: result.lastID, nome, empresa_id };
+
+function createLocalInstalado(nome, empresa_id) {
+  const db = getDb();
+  const result = db.prepare('INSERT INTO locais_instalados (nome, empresa_id) VALUES (?, ?)').run(nome, empresa_id);
+  return { id: result.lastInsertRowid, nome, empresa_id };
 }
 
 
-async function updateLocalInstalado(id, nome) {
-  const db = await getDb();
-  await db.run('UPDATE locais_instalados SET nome = ? WHERE id = ?', [nome, id]);
+
+function updateLocalInstalado(id, nome) {
+  const db = getDb();
+  db.prepare('UPDATE locais_instalados SET nome = ? WHERE id = ?').run(nome, id);
   return { id, nome };
 }
 
 
-async function deleteLocalInstalado(id) {
-  const db = await getDb();
-  await db.run('DELETE FROM locais_instalados WHERE id = ?', [id]);
+
+function deleteLocalInstalado(id) {
+  const db = getDb();
+  db.prepare('DELETE FROM locais_instalados WHERE id = ?').run(id);
 }
 
 export default {

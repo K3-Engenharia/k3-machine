@@ -17,8 +17,15 @@ export async function cadastrarEquipamento(req, res) {
 
 export async function listarEquipamentos(req, res) {
   try {
-    const { empresa_id } = req.query;
-    const lista = await listEquipamentos(empresa_id ? { empresa_id } : {});
+    // Se admin, vê todos. Se não, filtra pelas empresas do usuário
+    let lista = [];
+    if (req.user.role === 'admin') {
+      lista = listEquipamentos();
+    } else if (Array.isArray(req.user.empresas) && req.user.empresas.length > 0) {
+      lista = listEquipamentos({ empresas: req.user.empresas });
+    } else {
+      lista = [];
+    }
     res.json(lista);
   } catch (e) {
     res.status(500).json({ message: 'Erro ao listar equipamentos' });
@@ -27,13 +34,16 @@ export async function listarEquipamentos(req, res) {
 
 export async function buscarEquipamento(req, res) {
   try {
+    console.log('Buscando equipamento ID:', req.params.id);
     const equip = await getEquipamentoById(req.params.id);
+    console.log('Resultado do banco:', equip);
     if (!equip) return res.status(404).json({ message: 'Equipamento não encontrado' });
     // Buscar próximo agendamento
-    const proximo = await getProximoAgendamentoPorEquipamento(req.params.id);
+    const proximo = getProximoAgendamentoPorEquipamento(req.params.id);
     equip.proximo_agendamento = proximo ? proximo.data_hora : null;
     res.json(equip);
   } catch (e) {
+    console.error('Erro ao buscar equipamento:', e);
     res.status(500).json({ message: 'Erro ao buscar equipamento' });
   }
 }

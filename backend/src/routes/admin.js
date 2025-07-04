@@ -1,5 +1,5 @@
 import express from 'express';
-import { approveUserById, listPendingUsers, setUserEmpresa, deleteUser, changeUserPassword } from '../controllers/adminController.js';
+import { approveUserById, listPendingUsers, setUserEmpresas, deleteUser, changeUserPassword, createUserWithEmpresas } from '../controllers/adminController.js';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -10,8 +10,11 @@ router.get('/pending-users', authenticateToken, authorizeRoles('admin'), listPen
 // Aprovar usuário
 router.post('/approve/:id', authenticateToken, authorizeRoles('admin'), approveUserById);
 
-// Definir empresa do usuário
-router.post('/set-empresa/:id', authenticateToken, authorizeRoles('admin'), setUserEmpresa);
+// Definir empresas do usuário (múltiplas)
+router.post('/set-empresas/:id', authenticateToken, authorizeRoles('admin'), setUserEmpresas);
+
+// Criar usuário com múltiplas empresas
+router.post('/create', authenticateToken, authorizeRoles('admin'), createUserWithEmpresas);
 
 // Excluir usuário
 router.delete('/delete/:id', authenticateToken, authorizeRoles('admin'), deleteUser);

@@ -1,9 +1,9 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import Database from 'better-sqlite3';
+let dbInstance;
 
-export async function getDb() {
-  return open({
-    filename: './k3machine.sqlite',
-    driver: sqlite3.Database
-  });
+export function getDb() {
+  if (!dbInstance) {
+    dbInstance = new Database('./k3machine.sqlite');
+  }
+  return dbInstance;
 }

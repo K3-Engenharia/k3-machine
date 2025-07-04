@@ -1,4 +1,4 @@
-import { approveUser, findUserByEmail, getUserById, updateUserEmpresa, deleteUserById, updateUserPassword } from '../models/userModel.js';
+import { approveUser, findUserByEmail, getUserById, updateUserEmpresas, deleteUserById, updateUserPassword, createUser } from '../models/userModel.js';
 import { sendApprovalEmail } from '../utils/mailer.js';
 import { getDb } from '../models/db.js';
 import bcrypt from 'bcryptjs';
@@ -17,18 +17,30 @@ export async function approveUserById(req, res) {
   res.json({ message: 'Usuário aprovado com sucesso', user: updated });
 }
 
-export async function listPendingUsers(req, res) {
-  const db = await getDb();
-  const users = await db.all('SELECT * FROM users');
+export function listPendingUsers(req, res) {
+  const db = getDb();
+  const users = db.prepare('SELECT * FROM users').all();
   res.json(users);
 }
 
-export async function setUserEmpresa(req, res) {
+export async function setUserEmpresas(req, res) {
   const { id } = req.params;
-  const { empresa_id } = req.body;
-  if (!empresa_id) return res.status(400).json({ message: 'empresa_id obrigatório' });
-  const user = await updateUserEmpresa(id, empresa_id);
+  const { empresas } = req.body;
+  if (!Array.isArray(empresas)) return res.status(400).json({ message: 'empresas obrigatórias (array)' });
+  const user = updateUserEmpresas(id, empresas);
   res.json(user);
+}
+// Novo endpoint para criar usuário com múltiplas empresas
+export async function createUserWithEmpresas(req, res) {
+  const { name, username, email, password, role, isApproved, empresas } = req.body;
+  if (!name || !username || !email || !password || !role) {
+    return res.status(400).json({ message: 'Campos obrigatórios ausentes' });
+  }
+  // Hash da senha
+  const bcrypt = (await import('bcryptjs')).default;
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = createUser({ name, username, email, passwordHash, role, isApproved, empresas });
+  res.status(201).json(user);
 }
 
 export async function deleteUser(req, res) {

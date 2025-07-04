@@ -8,8 +8,8 @@ export default function UsuarioCreate() {
     username: '',
     email: '',
     password: '',
-    role: 'user',
-    empresa_id: ''
+    role: 'tecnico',
+    empresas: []
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,20 +29,27 @@ export default function UsuarioCreate() {
     fetchEmpresas();
   }, []);
 
+
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleEmpresasChange = e => {
+    const { value } = e.target;
+    setForm({ ...form, empresas: typeof value === 'string' ? value.split(',') : value });
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    if (!form.name || !form.username || !form.email || !form.password || !form.empresa_id) {
+    if (!form.name || !form.username || !form.email || !form.password || !form.empresas.length) {
       setError('Preencha todos os campos obrigatórios.');
       return;
     }
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:4000/api/auth/register', {
+    const res = await fetch('http://localhost:4000/api/admin/create', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +59,7 @@ export default function UsuarioCreate() {
     });
     if (res.ok) {
       setSuccess('Usuário cadastrado com sucesso!');
-      setForm({ name: '', username: '', email: '', password: '', role: 'user', empresa_id: '' });
+      setForm({ name: '', username: '', email: '', password: '', role: 'tecnico', empresas: [] });
     } else {
       const data = await res.json();
       setError(data.message || 'Erro ao cadastrar usuário.');
@@ -69,7 +76,16 @@ export default function UsuarioCreate() {
             <TextField label="Nome de usuário (login)" name="username" value={form.username} onChange={handleChange} required fullWidth />
             <TextField label="Email" name="email" value={form.email} onChange={handleChange} required fullWidth type="email" />
             <TextField label="Senha" name="password" value={form.password} onChange={handleChange} required fullWidth type="password" />
-            <TextField select label="Empresa" name="empresa_id" value={form.empresa_id} onChange={handleChange} required fullWidth>
+            <TextField
+              select
+              label="Empresas"
+              name="empresas"
+              value={form.empresas}
+              onChange={handleEmpresasChange}
+              required
+              fullWidth
+              SelectProps={{ multiple: true, renderValue: (selected) => selected.map(id => empresas.find(e => e.id === id)?.nome).join(', ') }}
+            >
               {empresas.map(e => (
                 <MenuItem key={e.id} value={e.id}>{e.nome}</MenuItem>
               ))}

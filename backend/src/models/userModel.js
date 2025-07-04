@@ -1,49 +1,68 @@
 import { getDb } from './db.js';
 
-export async function createUser({ name, username, email, passwordHash, role, isApproved }) {
-  const db = await getDb();
-  const result = await db.run(
-    `INSERT INTO users (name, username, email, password_hash, role, is_approved) VALUES (?, ?, ?, ?, ?, ?)`,
-    [name, username, email, passwordHash, role, isApproved ? 1 : 0]
-  );
-  return { id: result.lastID, name, username, email, role, is_approved: isApproved };
+const insertUserSQL = `INSERT INTO users (name, username, email, password_hash, role, is_approved) VALUES (?, ?, ?, ?, ?, ?)`;
+const insertUserEmpresaSQL = `INSERT INTO usuarios_empresas (user_id, empresa_id) VALUES (?, ?)`;
+
+export function createUser({ name, username, email, passwordHash, role, isApproved, empresas }) {
+  const db = getDb();
+  const result = db.prepare(insertUserSQL).run(name, username, email, passwordHash, role, isApproved ? 1 : 0);
+  const userId = result.lastInsertRowid;
+  if (Array.isArray(empresas)) {
+    const stmt = db.prepare(insertUserEmpresaSQL);
+    empresas.forEach(empresa_id => {
+      stmt.run(userId, empresa_id);
+    });
+  }
+  return { id: userId, name, username, email, role, is_approved: isApproved, empresas: empresas || [] };
 }
 
-export async function findUserByUsername(username) {
-  const db = await getDb();
-  return db.get(`SELECT * FROM users WHERE username = ?`, [username]);
+export function findUserByUsername(username) {
+  const db = getDb();
+  return db.prepare(`SELECT * FROM users WHERE username = ?`).get(username);
 }
 
-export async function findUserByEmail(email) {
-  const db = await getDb();
-  return db.get(`SELECT * FROM users WHERE email = ?`, [email]);
+export function findUserByEmail(email) {
+  const db = getDb();
+  return db.prepare(`SELECT * FROM users WHERE email = ?`).get(email);
 }
 
-export async function approveUser(userId) {
-  const db = await getDb();
-  await db.run(`UPDATE users SET is_approved = 1 WHERE id = ?`, [userId]);
+export function approveUser(userId) {
+  const db = getDb();
+  db.prepare(`UPDATE users SET is_approved = 1 WHERE id = ?`).run(userId);
   return getUserById(userId);
 }
 
-export async function getUserById(id) {
-  const db = await getDb();
-  return db.get(`SELECT * FROM users WHERE id = ?`, [id]);
+export function getUserById(id) {
+  const db = getDb();
+  return db.prepare(`SELECT * FROM users WHERE id = ?`).get(id);
 }
 
-export async function deleteUserById(id) {
-  const db = await getDb();
-  await db.run(`DELETE FROM users WHERE id = ?`, [id]);
+export function deleteUserById(id) {
+  const db = getDb();
+  db.prepare(`DELETE FROM users WHERE id = ?`).run(id);
   return true;
 }
 
-export async function updateUserEmpresa(id, empresa_id) {
-  const db = await getDb();
-  await db.run(`UPDATE users SET empresa_id = ? WHERE id = ?`, [empresa_id, id]);
+// Atualiza as empresas vinculadas ao usuário (substitui todas)
+export function updateUserEmpresas(id, empresas) {
+  const db = getDb();
+  db.prepare('DELETE FROM usuarios_empresas WHERE user_id = ?').run(id);
+  if (Array.isArray(empresas)) {
+    const stmt = db.prepare('INSERT INTO usuarios_empresas (user_id, empresa_id) VALUES (?, ?)');
+    empresas.forEach(empresa_id => {
+      stmt.run(id, empresa_id);
+    });
+  }
   return getUserById(id);
 }
+// Retorna todas as empresas vinculadas ao usuário
+export function getEmpresasByUserId(user_id) {
+  const db = getDb();
+  return db.prepare('SELECT empresa_id FROM usuarios_empresas WHERE user_id = ?').all(user_id).map(e => e.empresa_id);
+}
 
-export async function updateUserPassword(id, passwordHash) {
-  const db = await getDb();
-  await db.run(`UPDATE users SET password_hash = ? WHERE id = ?`, [passwordHash, id]);
+export function updateUserPassword(id, passwordHash) {
+  const db = getDb();
+  db.prepare(`UPDATE users SET password_hash = ? WHERE id = ?`).run(passwordHash, id);
   return getUserById(id);
 }
