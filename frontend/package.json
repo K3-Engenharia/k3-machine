@@ -27,5 +27,8 @@
   "scripts": {
     "start": "webpack serve --mode development --open",
     "build": "webpack --mode production"
+  },
+  "devDependencies": {
+    "process": "^0.11.10"
   }
 }
