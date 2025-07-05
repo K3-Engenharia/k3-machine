@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, MenuItem, Select, CircularProgress } from '@mui/material';
 import BackToDashboardButton from '../components/BackToDashboardButton';
+import API_URL from '../services/apiConfig'; // Confirme que este caminho está correto
 
 export default function UsuariosEmpresaAdmin() {
   const [usuarios, setUsuarios] = useState([]);
@@ -11,18 +12,43 @@ export default function UsuariosEmpresaAdmin() {
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
+      setError(''); // Limpa erros anteriores ao tentar buscar novamente
       try {
         const token = localStorage.getItem('token');
-        const [resUsers, resEmpresas] = await Promise.all([
-          fetch('http://localhost:4000/api/admin/pending-users', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('http://localhost:4000/api/empresas', { headers: { Authorization: `Bearer ${token}` } })
-        ]);
+        if (!token) {
+          throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+        }
+
+        // Requisição para usuários pendentes
+        const resUsersPromise = fetch(`${API_URL}/api/admin/pending-users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Requisição para empresas
+        const resEmpresasPromise = fetch(`${API_URL}/api/empresas`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const [resUsers, resEmpresas] = await Promise.all([resUsersPromise, resEmpresasPromise]);
+
+        if (!resUsers.ok) {
+          const errorData = await resUsers.json();
+          throw new Error(errorData.message || 'Erro ao carregar usuários pendentes');
+        }
+        if (!resEmpresas.ok) {
+          const errorData = await resEmpresas.json();
+          throw new Error(errorData.message || 'Erro ao carregar empresas');
+        }
+
         const users = await resUsers.json();
         const emps = await resEmpresas.json();
+
         setUsuarios(users);
         setEmpresas(emps);
-      } catch {
-        setError('Erro ao buscar dados');
+
+      } catch (err) {
+        console.error("Erro ao buscar dados para UsuariosEmpresaAdmin:", err);
+        setError('Erro ao buscar dados: ' + err.message);
       } finally {
         setLoading(false);
       }
@@ -31,23 +57,127 @@ export default function UsuariosEmpresaAdmin() {
   }, []);
 
   const handleEmpresaChange = async (userId, empresa_id) => {
+    setError(''); // Limpa erros anteriores
     try {
       const token = localStorage.getItem('token');
-      await fetch(`http://localhost:4000/api/admin/set-empresa/${userId}`, {
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado.');
+      }
+
+      const res = await fetch(`${API_URL}/api/admin/set-empresa/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ empresa_id })
       });
-      setUsuarios(usuarios => usuarios.map(u => u.id === userId ? { ...u, empresa_id } : u));
-    } catch {
-      setError('Erro ao atualizar empresa do usuário');
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Falha ao atualizar empresa do usuário');
+      }
+
+      setUsuarios(prevUsuarios =>
+        prevUsuarios.map(u => (u.id === userId ? { ...u, empresa_id } : u))
+      );
+      // alert('Empresa do usuário atualizada com sucesso!'); // Feedback de sucesso
+    } catch (err) {
+      console.error("Erro ao atualizar empresa do usuário:", err);
+      setError('Erro ao atualizar empresa do usuário: ' + err.message);
+    }
+  };
+
+  const handleApproveUser = async (userId) => {
+    setError(''); // Limpa erros anteriores
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado.');
+      }
+
+      const res = await fetch(`${API_URL}/api/admin/approve/${userId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Falha ao aprovar usuário');
+      }
+
+      setUsuarios(prevUsuarios =>
+        prevUsuarios.map(user =>
+          user.id === userId ? { ...user, is_approved: 1 } : user
+        )
+      );
+      // alert('Usuário aprovado com sucesso!'); // Feedback de sucesso
+    } catch (err) {
+      console.error("Erro ao aprovar usuário:", err);
+      setError('Erro ao aprovar usuário: ' + err.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+      setError(''); // Limpa erros anteriores
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token de autenticação não encontrado.');
+        }
+
+        const res = await fetch(`${API_URL}/api/admin/delete/${userId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Falha ao excluir usuário');
+        }
+
+        setUsuarios(prevUsuarios => prevUsuarios.filter(user => user.id !== userId));
+        // alert('Usuário excluído com sucesso!'); // Feedback de sucesso
+      } catch (err) {
+        console.error("Erro ao excluir usuário:", err);
+        setError('Erro ao excluir usuário: ' + err.message);
+      }
+    }
+  };
+
+  const handleChangePassword = async (userId) => {
+    setError(''); // Limpa erros anteriores
+    const novaSenha = prompt('Digite a nova senha para este usuário:');
+    if (novaSenha && novaSenha.length >= 4) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token de autenticação não encontrado.');
+        }
+
+        const res = await fetch(`${API_URL}/api/admin/change-password/${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ password: novaSenha })
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || 'Falha ao alterar senha');
+        }
+
+        alert('Senha alterada com sucesso!');
+      } catch (err) {
+        console.error("Erro ao alterar senha:", err);
+        setError('Erro ao alterar senha: ' + err.message);
+      }
+    } else if (novaSenha !== null) { // Usuário não cancelou, mas a senha é inválida
+      alert('A senha deve ter pelo menos 4 caracteres.');
     }
   };
 
   return (
     <Box p={4}>
       <BackToDashboardButton />
-      <Typography variant="h5" mb={2}>Usuários pendentes - Definir Empresa</Typography>
+      <Typography variant="h5" mb={2}>Usuários Pendentes - Definir Empresa e Aprovação</Typography>
       {error && <Typography color="error">{error}</Typography>}
       {loading ? <CircularProgress /> : (
         <TableContainer component={Paper}>
@@ -89,18 +219,7 @@ export default function UsuariosEmpresaAdmin() {
                         variant="contained"
                         color="success"
                         size="small"
-                        onClick={async () => {
-                          try {
-                            const token = localStorage.getItem('token');
-                            await fetch(`http://localhost:4000/api/admin/approve/${u.id}`, {
-                              method: 'POST',
-                              headers: { Authorization: `Bearer ${token}` }
-                            });
-                            setUsuarios(usuarios => usuarios.map(user => user.id === u.id ? { ...user, is_approved: 1 } : user));
-                          } catch {
-                            setError('Erro ao aprovar usuário');
-                          }
-                        }}
+                        onClick={() => handleApproveUser(u.id)} // Chama a função separada
                         disabled={!u.empresa_id}
                       >
                         Aprovar
@@ -108,25 +227,12 @@ export default function UsuariosEmpresaAdmin() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {u.role !== 'admin' && (
+                    {u.role !== 'admin' && ( // Evita excluir o próprio admin se ele estiver na lista
                       <Button
                         variant="outlined"
                         color="error"
                         size="small"
-                        onClick={async () => {
-                          if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-                            try {
-                              const token = localStorage.getItem('token');
-                              await fetch(`http://localhost:4000/api/admin/delete/${u.id}`, {
-                                method: 'DELETE',
-                                headers: { Authorization: `Bearer ${token}` }
-                              });
-                              setUsuarios(usuarios => usuarios.filter(user => user.id !== u.id));
-                            } catch {
-                              setError('Erro ao excluir usuário');
-                            }
-                          }
-                        }}
+                        onClick={() => handleDeleteUser(u.id)} // Chama a função separada
                       >
                         Excluir
                       </Button>
@@ -136,24 +242,7 @@ export default function UsuariosEmpresaAdmin() {
                       color="primary"
                       size="small"
                       sx={{ ml: 1 }}
-                      onClick={async () => {
-                        const novaSenha = prompt('Digite a nova senha para este usuário:');
-                        if (novaSenha && novaSenha.length >= 4) {
-                          try {
-                            const token = localStorage.getItem('token');
-                            await fetch(`http://localhost:4000/api/admin/change-password/${u.id}`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                              body: JSON.stringify({ password: novaSenha })
-                            });
-                            alert('Senha alterada com sucesso!');
-                          } catch {
-                            setError('Erro ao alterar senha');
-                          }
-                        } else if (novaSenha) {
-                          alert('A senha deve ter pelo menos 4 caracteres.');
-                        }
-                      }}
+                      onClick={() => handleChangePassword(u.id)} // Chama a função separada
                     >
                       Alterar Senha
                     </Button>
