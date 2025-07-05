@@ -7,8 +7,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../services/apiConfig';
 
-const API_URL = 'http://localhost:4000/api/tipos-equipamento';
+const TIPOS_API_URL = `${API_URL}/api/tipos-equipamento`;
 
 export default function TiposEquipamentoAdmin() {
   const [tipos, setTipos] = useState([]);
@@ -19,7 +20,7 @@ export default function TiposEquipamentoAdmin() {
   const navigate = useNavigate();
 
   const fetchTipos = async () => {
-    const res = await fetch(API_URL);
+    const res = await fetch(TIPOS_API_URL);
     const data = await res.json();
     setTipos(data);
   };
@@ -30,7 +31,7 @@ export default function TiposEquipamentoAdmin() {
 
   const handleAdd = async () => {
     if (!novoTipo.trim()) return;
-    await fetch(API_URL, {
+    await fetch(TIPOS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome: novoTipo })
@@ -46,7 +47,7 @@ export default function TiposEquipamentoAdmin() {
   };
 
   const handleEditSave = async () => {
-    await fetch(`${API_URL}/${editando}`, {
+    await fetch(`${TIPOS_API_URL}/${editando}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome: editNome })
@@ -59,7 +60,7 @@ export default function TiposEquipamentoAdmin() {
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este tipo?')) {
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      await fetch(`${TIPOS_API_URL}/${id}`, { method: 'DELETE' });
       fetchTipos();
     }
   };

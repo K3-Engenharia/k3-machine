@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { MenuItem, TextField } from '@mui/material';
+import API_URL from '../services/apiConfig';
 
 export default function EmpresaSelect({ value, onChange, required = true, ...props }) {
   const [empresas, setEmpresas] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/empresas')
+    fetch(`${API_URL}/api/empresas`)
       .then(res => res.json())
       .then(setEmpresas)
       .catch(() => setEmpresas([]));

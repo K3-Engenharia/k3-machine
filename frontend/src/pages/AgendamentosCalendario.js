@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import { Box, Paper, Typography, Chip, CircularProgress, Stack } from '@mui/material';
 import BackToDashboardButton from '../components/BackToDashboardButton';
+import API_URL from '../services/apiConfig';
 
 const statusColors = {
   'Agendado': 'primary',
@@ -22,14 +23,14 @@ export default function AgendamentosCalendario() {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:4000/api/equipamentos', {
+        const res = await fetch(`${API_URL}/api/equipamentos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Erro ao buscar equipamentos');
         const equipamentos = await res.json();
         let ags = [];
         for (const eq of equipamentos) {
-          const resAg = await fetch(`http://localhost:4000/api/equipamentos/${eq.id}/agendamentos`, {
+          const resAg = await fetch(`${API_URL}/api/equipamentos/${eq.id}/agendamentos`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (resAg.ok) {

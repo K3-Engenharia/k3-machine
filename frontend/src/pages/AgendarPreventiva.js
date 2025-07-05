@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Paper, Typography, TextField, Button, MenuItem, CircularProgress, Chip } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import BackToDashboardButton from '../components/BackToDashboardButton';
+import API_URL from '../services/apiConfig';
 
 const periodicidades = [
   { label: '6 meses', value: '6 meses' },
@@ -30,7 +31,7 @@ export default function AgendarPreventiva() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:4000/api/equipamentos/${id}`, {
+        const res = await fetch(`${API_URL}/api/equipamentos/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Equipamento não encontrado');
@@ -55,7 +56,7 @@ export default function AgendarPreventiva() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/equipamentos/${id}/agendamentos`, {
+      const res = await fetch(`${API_URL}/api/equipamentos/${id}/agendamentos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)

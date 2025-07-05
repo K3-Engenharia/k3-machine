@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { TextField, MenuItem, IconButton, InputAdornment } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import API_URL from '../services/apiConfig';
 
 export default function LocalInstaladoSelect({ value, onChange, required, empresaId }) {
   const [locais, setLocais] = useState([]);
@@ -12,7 +13,7 @@ export default function LocalInstaladoSelect({ value, onChange, required, empres
     async function fetchLocais() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:4000/api/locais-instalados?empresa_id=${empresaId}`, {
+        const res = await fetch(`${API_URL}/api/locais-instalados?empresa_id=${empresaId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -29,7 +30,7 @@ export default function LocalInstaladoSelect({ value, onChange, required, empres
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/locais-instalados', {
+      const res = await fetch(`${API_URL}/api/locais-instalados`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ nome: novoLocal })

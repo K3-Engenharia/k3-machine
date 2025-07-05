@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Paper, MenuItem, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../services/apiConfig';
 
 export default function UsuarioCreate() {
   const [form, setForm] = useState({
@@ -19,7 +20,7 @@ export default function UsuarioCreate() {
   React.useEffect(() => {
     async function fetchEmpresas() {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/empresas', {
+      const res = await fetch(`${API_URL}/api/empresas`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -49,7 +50,7 @@ export default function UsuarioCreate() {
       return;
     }
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:4000/api/admin/create', {
+    const res = await fetch(`${API_URL}/api/admin/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

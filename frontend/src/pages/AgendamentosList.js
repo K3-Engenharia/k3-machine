@@ -26,11 +26,11 @@ export default function AgendamentosList() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const resEq = await fetch(`http://localhost:4000/api/equipamentos/${id}`, {
+        const resEq = await fetch(`${API_URL}/api/equipamentos/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (resEq.ok) setEquipamento(await resEq.json());
-        const res = await fetch(`http://localhost:4000/api/equipamentos/${id}/agendamentos`, {
+        const res = await fetch(`${API_URL}/api/equipamentos/${id}/agendamentos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Erro ao buscar agendamentos');
@@ -86,7 +86,7 @@ export default function AgendamentosList() {
                     <DoneIcon style={{ cursor: 'pointer', marginRight: 8 }} color="success" onClick={async () => {
                       if(window.confirm('Marcar como concluído?')) {
                         const token = localStorage.getItem('token');
-                        await fetch(`http://localhost:4000/api/equipamentos/agendamentos/${a.id}/status`, {
+                        await fetch(`${API_URL}/api/equipamentos/agendamentos/${a.id}/status`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ status: 'Concluído' })
@@ -99,7 +99,7 @@ export default function AgendamentosList() {
                     <CancelIcon style={{ cursor: 'pointer' }} color="error" onClick={async () => {
                       if(window.confirm('Cancelar agendamento?')) {
                         const token = localStorage.getItem('token');
-                        await fetch(`http://localhost:4000/api/equipamentos/agendamentos/${a.id}/status`, {
+                        await fetch(`${API_URL}/api/equipamentos/agendamentos/${a.id}/status`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ status: 'Cancelado' })
@@ -112,7 +112,7 @@ export default function AgendamentosList() {
                     <ReplayIcon style={{ cursor: 'pointer' }} color="info" onClick={async () => {
                       if(window.confirm('Reabrir agendamento?')) {
                         const token = localStorage.getItem('token');
-                        await fetch(`http://localhost:4000/api/equipamentos/agendamentos/${a.id}/status`, {
+                        await fetch(`${API_URL}/api/equipamentos/agendamentos/${a.id}/status`, {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ status: 'Agendado' })

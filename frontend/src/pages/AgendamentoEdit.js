@@ -15,7 +15,7 @@ export default function AgendamentoEdit() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:4000/api/equipamentos/${agendamentoId}/agendamentos`, {
+        const res = await fetch(`${API_URL}/api/equipamentos/${agendamentoId}/agendamentos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Agendamento não encontrado');
@@ -41,7 +41,7 @@ export default function AgendamentoEdit() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/equipamentos/agendamentos/${agendamentoId}`, {
+      const res = await fetch(`${API_URL}/api/equipamentos/agendamentos/${agendamentoId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)

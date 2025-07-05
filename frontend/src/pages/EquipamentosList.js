@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EventIcon from '@mui/icons-material/Event';
 import CloseIcon from '@mui/icons-material/Close';
 
+
 export default function EquipamentosList() {
   const [equipamentos, setEquipamentos] = useState([]);
   const [empresas, setEmpresas] = useState([]);
@@ -13,6 +14,8 @@ export default function EquipamentosList() {
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
 
+  
+  // Fetch user from localStorage and decode token
   useEffect(() => {
     async function fetchUser() {
       const token = localStorage.getItem('token');
@@ -29,7 +32,7 @@ export default function EquipamentosList() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        let url = 'http://localhost:4000/api/equipamentos';
+        let url = `${API_URL}/api/equipamentos`;
         if (user && user.role !== 'admin' && user.empresa_id) {
           url += `?empresa_id=${user.empresa_id}`;
         }
@@ -55,7 +58,7 @@ export default function EquipamentosList() {
   useEffect(() => {
     async function fetchEmpresas() {
       try {
-        const res = await fetch('http://localhost:4000/api/empresas');
+        const res = await fetch(`${API_URL}/api/empresas`);
         setEmpresas(await res.json());
       } catch {
         setEmpresas([]);
@@ -111,7 +114,7 @@ export default function EquipamentosList() {
                         onClick={async () => {
                           if (window.confirm('Tem certeza que deseja excluir este equipamento?')) {
                             const token = localStorage.getItem('token');
-                            await fetch(`http://localhost:4000/api/equipamentos/${e.id}`, {
+                            await fetch(`${API_URL}/api/equipamentos/${e.id}`, {
                               method: 'DELETE',
                               headers: { Authorization: `Bearer ${token}` }
                             });

@@ -6,6 +6,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import AdminActionsMenu from '../components/AdminActionsAccordion';
+import API_URL from '../services/apiConfig';
+
+console.log('API_URL:', API_URL);
 
 const statusColors = {
   'Em Operação': 'success',
@@ -25,7 +28,7 @@ export default function Dashboard() {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:4000/api/dashboard', {
+        const res = await fetch(`${API_URL}/api/dashboard`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) {
@@ -41,7 +44,7 @@ export default function Dashboard() {
     async function fetchEquipamentos() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:4000/api/equipamentos', {
+        const res = await fetch(`${API_URL}/api/equipamentos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -128,7 +131,7 @@ export default function Dashboard() {
                           onClick={async () => {
                             if (window.confirm('Tem certeza que deseja excluir este equipamento?')) {
                               const token = localStorage.getItem('token');
-                              await fetch(`http://localhost:4000/api/equipamentos/${e.id}`, {
+                              await fetch(`${API_URL}/api/equipamentos/${e.id}`, {
                                 method: 'DELETE',
                                 headers: { Authorization: `Bearer ${token}` }
                               });

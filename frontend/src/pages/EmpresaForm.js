@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Paper, Typography, TextField, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import BackToDashboardButton from '../components/BackToDashboardButton';
+import API_URL from '../services/apiConfig';
 
 export default function EmpresaForm() {
   const [form, setForm] = useState({ nome: '', cidade: '', estado: '' });
@@ -26,7 +27,7 @@ export default function EmpresaForm() {
     }
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/empresas', {
+      const res = await fetch(`${API_URL}/api/empresas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)

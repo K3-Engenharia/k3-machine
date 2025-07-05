@@ -4,6 +4,7 @@ import { LocalInstaladoSelect } from '../components';
 import { useNavigate } from 'react-router-dom';
 import BackToDashboardButton from '../components/BackToDashboardButton';
 import EmpresaSelect from '../components/EmpresaSelect';
+import API_URL from '../services/apiConfig';
 
 const statusList = ['Em Operação', 'Em Manutenção', 'Desativado'];
 
@@ -22,7 +23,7 @@ export default function EquipamentoForm() {
     async function fetchTipos() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:4000/api/tipos-equipamento', {
+        const res = await fetch(`${API_URL}/api/tipos-equipamento`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -49,7 +50,7 @@ export default function EquipamentoForm() {
     }
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/equipamentos', {
+      const res = await fetch(`${API_URL}/api/equipamentos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)
@@ -75,7 +76,7 @@ export default function EquipamentoForm() {
   const handleSaveTipo = async (tipoId) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/tipos-equipamento/${tipoId}`, {
+      const res = await fetch(`${API_URL}/api/tipos-equipamento/${tipoId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ nome: editTipoNome })

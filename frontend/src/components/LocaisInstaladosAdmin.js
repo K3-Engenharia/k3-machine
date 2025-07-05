@@ -3,8 +3,9 @@ import { Box, Typography, Button, TextField, List, ListItem, ListItemText, IconB
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EmpresaSelect from './EmpresaSelect';
+import API_URL from '../services/apiConfig';
 
-const API_URL = 'http://localhost:4000/api/locais-instalados';
+const LOCAIS_API_URL = `${API_URL}/api/locais-instalados`;
 
 export default function LocaisInstaladosAdmin() {
   const [locais, setLocais] = useState([]);
@@ -16,7 +17,7 @@ export default function LocaisInstaladosAdmin() {
   const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/empresas')
+    fetch(`${API_URL}/api/empresas`)
       .then(res => res.json())
       .then(setEmpresas)
       .catch(() => setEmpresas([]));
@@ -28,7 +29,7 @@ export default function LocaisInstaladosAdmin() {
       return;
     }
     const token = localStorage.getItem('token');
-    fetch(`${API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${LOCAIS_API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => res.json())
       .then(setLocais)
       .catch(() => setLocais([]));
@@ -37,14 +38,14 @@ export default function LocaisInstaladosAdmin() {
   const handleAdd = async () => {
     if (!novoLocal.trim() || !empresaId) return;
     const token = localStorage.getItem('token');
-    await fetch(API_URL, {
+    await fetch(LOCAIS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ nome: novoLocal, empresa_id: empresaId })
     });
     setNovoLocal('');
     // Atualiza lista
-    const res = await fetch(`${API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${LOCAIS_API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
     setLocais(await res.json());
   };
 
@@ -56,7 +57,7 @@ export default function LocaisInstaladosAdmin() {
 
   const handleEditSave = async () => {
     const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/${editando}`, {
+    await fetch(`${LOCAIS_API_URL}/${editando}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ nome: editNome })
@@ -65,16 +66,16 @@ export default function LocaisInstaladosAdmin() {
     setEditando(null);
     setEditNome('');
     // Atualiza lista
-    const res = await fetch(`${API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${LOCAIS_API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
     setLocais(await res.json());
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Tem certeza que deseja excluir este local?')) {
       const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${LOCAIS_API_URL}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       // Atualiza lista
-      const res = await fetch(`${API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${LOCAIS_API_URL}?empresa_id=${empresaId}`, { headers: { Authorization: `Bearer ${token}` } });
       setLocais(await res.json());
     }
   };

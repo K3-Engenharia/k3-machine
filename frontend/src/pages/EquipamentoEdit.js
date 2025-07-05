@@ -4,6 +4,7 @@ import { LocalInstaladoSelect } from '../components';
 import { useNavigate, useParams } from 'react-router-dom';
 import BackToDashboardButton from '../components/BackToDashboardButton';
 import EmpresaSelect from '../components/EmpresaSelect';
+import API_URL from '../services/apiConfig';
 
 const statusList = ['Em Operação', 'Em Manutenção', 'Desativado'];
 
@@ -21,7 +22,7 @@ export default function EquipamentoEdit() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:4000/api/equipamentos/${id}`, {
+        const res = await fetch(`${API_URL}/api/equipamentos/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!res.ok) {
@@ -44,7 +45,7 @@ export default function EquipamentoEdit() {
     async function fetchTipos() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:4000/api/tipos-equipamento', {
+        const res = await fetch(`${API_URL}/api/tipos-equipamento`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -66,7 +67,7 @@ export default function EquipamentoEdit() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/equipamentos/${id}`, {
+      const res = await fetch(`${API_URL}/api/equipamentos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(form)
