@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 import logo from '../assets/logo.png';
+import API_URL from '../services/apiConfig';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -18,7 +19,8 @@ export default function Login() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:4000/api/auth/login', {
+    console.log('API_URL sendo usado:', API_URL); // Mantenha este console.log para verificar
+    const res = await fetch(`${API_URL}/api/auth/login`, { // <<< MUDEI ESTA LINHA
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
