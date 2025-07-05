@@ -3,30 +3,27 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
-const dotenv = require('dotenv');
+// const dotenv = require('dotenv'); // <<< REMOVA ESTA LINHA
 
 module.exports = (env, argv) => {
-  // Use 'production' como fallback seguro se argv.mode não estiver disponível
   const isDevelopment = argv.mode === 'development';
 
-  const envFilePath = isDevelopment ? '.env.development' : '.env.production';
-  const finalEnvPath = path.resolve(__dirname, envFilePath);
-  const genericEnvPath = path.resolve(__dirname, '.env');
+  // Remova toda a lógica de dotenv.config()
+  // As variáveis de ambiente do Vercel já estão em process.env durante o build.
+  // Para desenvolvimento local, você ainda precisará do .env.development ou .env
+  // O webpack-dev-server lida com isso em conjunto com o DefinePlugin.
 
-  const parsedEnv = dotenv.config({ path: finalEnvPath }).parsed || dotenv.config({ path: genericEnvPath }).parsed || {};
-
-  const environmentVariables = Object.keys(parsedEnv).reduce((acc, key) => {
-    if (key.startsWith('REACT_APP_')) {
-      acc[`process.env.${key}`] = JSON.stringify(parsedEnv[key]);
-    }
-    return acc;
-  }, {
-    // Garanta que NODE_ENV esteja SEMPRE definido para o browser
+  const environmentVariables = {
     'process.env.NODE_ENV': JSON.stringify(argv.mode || 'development'),
-  });
+    'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL), // <<< MUDANÇA CRUCIAL AQUI
+  };
+
+  // Remova os console.log temporários que adicionamos para depuração.
+  // console.log('Environment Variables para DefinePlugin:', environmentVariables);
+  // console.log('process.env.REACT_APP_API_URL (no ambiente de build):', process.env.REACT_APP_API_URL);
 
   return {
-    mode: argv.mode || 'production', // << Use 'production' como fallback aqui também
+    mode: argv.mode || 'production',
     entry: './src/index.js',
     output: {
       path: path.resolve(__dirname, 'dist'),
@@ -58,7 +55,7 @@ module.exports = (env, argv) => {
     },
     resolve: {
       extensions: ['.js', '.jsx'],
-      fallback: { // <<< ADICIONE ESTE BLOCO
+      fallback: {
         "process": require.resolve("process/browser")
       }
     },
@@ -67,7 +64,6 @@ module.exports = (env, argv) => {
         template: './public/index.html'
       }),
       new webpack.DefinePlugin(environmentVariables),
-      // <<< ADICIONE ESTE PLUGIN AQUI TAMBÉM
       new webpack.ProvidePlugin({
         process: 'process/browser',
       }),
@@ -80,7 +76,5 @@ module.exports = (env, argv) => {
       historyApiFallback: true,
       open: true,
     },
-    // Remova o bloco 'node' se existir. No Webpack 5, 'node' tem um comportamento diferente.
-    // Se você tinha algo como 'node: { fs: "empty" }', remova.
   };
 };
