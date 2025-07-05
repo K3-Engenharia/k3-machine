@@ -1,11 +1,11 @@
 import express from 'express';
-import { approveUserById, listPendingUsers, setUserEmpresas, deleteUser, changeUserPassword, createUserWithEmpresas } from '../controllers/adminController.js';
+import { approveUserById, listAllUsers, setUserEmpresas, deleteUser, changeUserPassword, createUserWithEmpresas } from '../controllers/adminController.js';
 import { authenticateToken, authorizeRoles } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Listar usuários pendentes de aprovação
-router.get('/pending-users', authenticateToken, authorizeRoles('admin'), listPendingUsers);
+router.get('/users', authenticateToken, authorizeRoles('admin'), listAllUsers);
 
 // Aprovar usuário
 router.post('/approve/:id', authenticateToken, authorizeRoles('admin'), approveUserById);

@@ -17,7 +17,7 @@ export async function approveUserById(req, res) {
   res.json({ message: 'Usuário aprovado com sucesso', user: updated });
 }
 
-export function listPendingUsers(req, res) {
+export function listAllUsers(req, res) {
   const db = getDb();
   const users = db.prepare('SELECT * FROM users').all();
   res.json(users);

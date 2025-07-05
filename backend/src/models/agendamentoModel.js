@@ -42,11 +42,17 @@ export function getProximoAgendamentoPorEquipamento(equipamento_id) {
   ).get(equipamento_id);
 }
 
-export function contarProximasIntervencoes() {
+export function contarProximasIntervencoes(empresas = null) {
   const db = getDb();
-  const row = db.prepare(
-    `SELECT COUNT(*) as total FROM agendamentos WHERE status = 'Agendado' AND data_hora >= datetime('now')`
-  ).get();
+  let query = `SELECT COUNT(a.id) as total FROM agendamentos a JOIN equipamentos e ON a.equipamento_id = e.id WHERE a.status = 'Agendado' AND a.data_hora >= datetime('now')`;
+  const params = [];
+
+  if (empresas && Array.isArray(empresas) && empresas.length > 0) {
+    const placeholders = empresas.map(() => '?').join(',');
+    query += ` AND e.empresa_id IN (${placeholders})`;
+    params.push(...empresas);
+  }
+  const row = db.prepare(query).get(...params);
   return row ? row.total : 0;
 }
 
@@ -82,17 +88,24 @@ export function atualizarStatusAgendamento(id, status) {
   return db.prepare('SELECT * FROM agendamentos WHERE id = ?').get(id);
 }
 
-export function contarEquipamentosPreventivaEmDia() {
+export function contarEquipamentosPreventivaEmDia(empresas = null) {
   const db = getDb();
-  // Conta quantos equipamentos NÃO possuem agendamento "Agendado" atrasado
-  const row = db.prepare(`
-    SELECT COUNT(*) as total FROM equipamentos e
+  let query = `
+    SELECT COUNT(e.id) as total FROM equipamentos e
     WHERE NOT EXISTS (
       SELECT 1 FROM agendamentos a
       WHERE a.equipamento_id = e.id
         AND a.status = 'Agendado'
         AND datetime(a.data_hora) < datetime('now')
     )
-  `).get();
+  `;
+  const params = [];
+
+  if (empresas && Array.isArray(empresas) && empresas.length > 0) {
+    const placeholders = empresas.map(() => '?').join(',');
+    query += ` AND e.empresa_id IN (${placeholders})`;
+    params.push(...empresas);
+  }
+  const row = db.prepare(query).get(...params);
   return row ? row.total : 0;
 }

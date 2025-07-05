@@ -11,6 +11,20 @@ export function createEquipamento(equip) {
   return { id: result.lastInsertRowid, ...equip };
 }
 
+export function contarEquipamentos(empresas = null) {
+  const db = getDb();
+  let query = 'SELECT COUNT(*) as total FROM equipamentos';
+  const params = [];
+
+  if (empresas && Array.isArray(empresas) && empresas.length > 0) {
+    const placeholders = empresas.map(() => '?').join(',');
+    query += ` WHERE empresa_id IN (${placeholders})`;
+    params.push(...empresas);
+  }
+  const row = db.prepare(query).get(...params);
+  return row ? row.total : 0;
+}
+
 export function listEquipamentos({ empresa_id, empresas } = {}) {
   const db = getDb();
   if (empresas && Array.isArray(empresas) && empresas.length > 0) {

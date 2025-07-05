@@ -20,7 +20,7 @@ export default function UsuariosEmpresaAdmin() {
         }
 
         // Requisição para usuários pendentes
-        const resUsersPromise = fetch(`${API_URL}/api/admin/pending-users`, {
+        const resUsersPromise = fetch(`${API_URL}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -64,10 +64,10 @@ export default function UsuariosEmpresaAdmin() {
         throw new Error('Token de autenticação não encontrado.');
       }
 
-      const res = await fetch(`${API_URL}/api/admin/set-empresa/${userId}`, {
+      const res = await fetch(`${API_URL}/api/admin/set-empresas/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ empresa_id })
+        body: JSON.stringify({ empresas: [empresa_id] })
       });
 
       if (!res.ok) {

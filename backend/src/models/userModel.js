@@ -56,7 +56,7 @@ export function updateUserEmpresas(id, empresas) {
   return getUserById(id);
 }
 // Retorna todas as empresas vinculadas ao usuário
-export function getEmpresasByUserId(user_id) {
+export async function getEmpresasByUserId(user_id) {
   const db = getDb();
   return db.prepare('SELECT empresa_id FROM usuarios_empresas WHERE user_id = ?').all(user_id).map(e => e.empresa_id);
 }
